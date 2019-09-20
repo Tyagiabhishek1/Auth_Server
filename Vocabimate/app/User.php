@@ -11,6 +11,7 @@ class User extends Authenticatable
 {   
     public $timestamps = false;
     use HasApiTokens,Notifiable;
+    protected $primaryKey = 'user_id';
 
     /**
      * The attributes that are mass assignable.

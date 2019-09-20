@@ -14,9 +14,11 @@ use Illuminate\Http\Request;
 */
 
 Route::post('login', 'AuthController@login');
+Route::post('upload', 'UploadController@upload');
 Route::post('register', 'AuthController@register');
 Route::group(['middleware' => 'auth:api'], function(){
 Route::get('getUser', 'AuthController@getUser');
 Route::post('logout', 'AuthController@logout');
-Route::put('edit', 'AuthController@edit');
+Route::post('savedetails', 'AuthController@savedetails');
+Route::post('reset-pass', 'AuthController@resetpassword');
 });
