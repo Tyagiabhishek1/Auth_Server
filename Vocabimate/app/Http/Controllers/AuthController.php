@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\RegisterResource as Reg;
-
 use App\User; 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB; 
 use Validator;
+use Illuminate\Support\Facades\Input;
 
 class AuthController extends Controller
 {
@@ -17,19 +17,21 @@ class AuthController extends Controller
   
     public function register(Request $request) {  
     $validator = Validator::make($request->all(), [ 
-                 'login_id' => 'required',
+                 'login_id' => 'required|unique:users',
                  'device_id'=>'required',
-                 'email' => 'required|email',
+                 'email' => 'required|email|unique:users',
                  'password' => 'required',  
                  'c_password' => 'required|same:password', 
        ]);   
     if ($validator->fails()) {          
-          return response()->json(['error'=>$validator->errors()], 401);                        }    
+          return response()->json(['error'=>$validator->errors()], 401);  
+    }  
+     
     $input = $request->all(); 
     $x['login_id']=$input['login_id'];
     $x['email']=$input['email'];
     $a['device_id']=$input['device_id'];
-    $x['password'] = bcrypt($input['password']);    
+    $x['password'] = bcrypt($input['password']);   
     $user = User::create($x);
     $a['user_id']=$user['user_id'];
     $success['token'] =  $user->createToken('AppName')->accessToken;
@@ -68,8 +70,9 @@ class AuthController extends Controller
    ->select('subscription.sub_start_date','subscription.sub_end_date','subscription.subs_status','subscription.actual_price','subscription.discount_price','subscription.paid_price','subscription.user_id')
    ->where("subscription.user_id", "=",$p)
    ->get();
-   $code = array("code"=>200,'message'=>'User Created');   
-   return response()->json(['userMessage' => $code,'user' => $usd, 'subscription' => $comments,'subscription_status' => $subs]);
+   DB::table('user_details')->insert($p);
+   $code = array("code"=>200,'message'=>'User Successfully Created, Please Login!');   
+   return response()->json(['userMessage' => $code]);
    }
      
       
@@ -97,7 +100,8 @@ class AuthController extends Controller
 
        return response()->json(['userMessage' => $code,'subscription'=>$subs,'plan'=>$comments,'user'=>$usd,'token'=>$success]); 
      } else{ 
-      return response()->json(['error'=>'Unauthorised'], 401); 
+      $codee = array("code"=>3004,'message'=>'Invalid LoginId or Password');
+      return response()->json(['error'=>$codee], 401); 
       } 
    }
      
@@ -140,12 +144,15 @@ if ($validator->fails()) {
       $d['zipcode']=$input['zipcode'];
       $d['country']=$input['country'];
           
-      DB::table('user_details')->insert($d);
+      DB::table('user_details')
+      ->where('user_id',$id)
+      ->update($d);
       $code = array("code"=>200,'message'=>'details saved successfully');
 
       return response()->json(['success' =>$code], $this->successStatus); 
+}
    
-   }
+   
    
    public function logout(){ 
       $user=Auth::user();
@@ -153,8 +160,9 @@ if ($validator->fails()) {
       $a->revoke();
       $code = array("code"=>200,'message'=>'logged out successfully');
       return response()->json(['success' => $code]);
-      
-   }
+     }
+     
+   
 
    public function resetpassword(Request $request){
       $user=Auth::user();
