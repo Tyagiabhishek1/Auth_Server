@@ -21,4 +21,7 @@ Route::get('getUser', 'AuthController@getUser');
 Route::post('logout', 'AuthController@logout');
 Route::post('savedetails', 'AuthController@savedetails');
 Route::post('reset-pass', 'AuthController@resetpassword');
+Route::get('subplan', 'LicenseController@getCurrentSubsPlan');
+Route::get('planlist','LicenseController@getplanlist');
+Route::post('upgradeplan','LicenseController@upgradeplan');
 });
