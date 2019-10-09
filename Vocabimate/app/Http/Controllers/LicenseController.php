@@ -45,6 +45,7 @@ class LicenseController extends Controller
     }
     public function upgradeplan(Request $request)
     {   $user = Auth::user();
+        $dt =now();
         $validator = Validator::make($request->all(), [ 
             'user_id' => 'required|numeric',
             'plan_id'=>'required|numeric', 
@@ -56,10 +57,25 @@ if ($validator->fails()) {
     $id=$user->user_id;
     $update['user_id']=$input['user_id'];
     $update['plan_id']=$input['plan_id'];
-    DB::table('subscription')
-      ->where('user_id',$id)
-      ->update($update);
-      $code = array("code"=>200,'message'=>'Your Plan Has Been Upgraded to');
+    $new=$input['plan_id'];
+    $update['sub_start_date']=$dt;
+    $sql="select plan_id,plan_name,actual_price,discount_price from plan where plan_id=$new";
+    $comments = DB::select($sql);
+   
+   foreach ($comments as $comments) {
+                
+      $plan_name= $comments->plan_name;
+      $actual_price= $comments->actual_price;
+      $plan_id= $comments->plan_id;
+      $discount_price= $comments->discount_price;
+
+
+
+   }
+   DB::table('subscription')
+   ->where('user_id',$id)
+   ->update(array('plan_id'=>$plan_id,'sub_start_date'=>$dt,'actual_price'=>$actual_price,'discount_price'=>$discount_price));
+    $code = array("code"=>200,'message'=>'Your Plan Has Been Upgraded to '.$plan_name);
 
       return response()->json(['success' =>$code]); 
     }
