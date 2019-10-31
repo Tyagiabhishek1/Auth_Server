@@ -184,38 +184,18 @@ if ($validator->fails()) {
 
    }
 
+   //------Forget Password API--------- 
+
    public function forgetPassword(){
-      die("asfaca");
-            $snsKey = env('AWS_ACCESS_KEY_ID');
-            $snsSecret =env('AWS_SECRET_ACCESS_KEY');
-            $snsRegion = env('AWS_DEFAULT_REGION');
-            $snsVersion = env('AWS_VERSION');
-            try{
-            $sns = new SnsClient([
-            'region' => $snsRegion, //Change according to you
-            'version' => $snsVersion, //Change according to you
-            'credentials' => [
-            'key' => $snsKey,
-            'secret' => $snsSecret,
-            ],
-            'scheme' => 'https', //disables SSL certification, there was an error on enabling it 
-            ]);
-            }catch(AwsException $ex){
-            // return RestControllerHelper::responseHandler("sns", array("status"=>1500,"message"=>"SNS account connection failed"), 200);
-            echo $ex;
-            }
-            try {
-            $result = $sns->listTopics([
-            ]);
-            print_r($result);
-            } catch (AwsException $e) {
-            // output error message if fails
-            error_log($e->getMessage());
-            } 
-            die("LIST OF TOPICS");
+           //TODO
+           // On CALLING THIS API USER ASKED TO ENTER HIS MOBILE NUMBER
+           // 1. FIRST CHECK HIS PHONE NUMBER IN DB 
+           // (IF) FOUND THEN CALL SEND OTP FUNCTION
+           // ELSE
+           // NOT FOUND 
 
    }
-
+   //---------Send OTP API--------
     public function sendOTP(){
       $snsKey = env('AWS_ACCESS_KEY_ID');
       $snsSecret =env('AWS_SECRET_ACCESS_KEY');
@@ -238,6 +218,7 @@ if ($validator->fails()) {
          }catch(AwsException $ex){
          echo $ex;
          }
+         //THIS TRY-CATCH  FUNCTION WILL SEND SMS TO PHONE NUMBER
       //    try {
       //       $result = $sns->publish([
       //           'Message' => $message,
@@ -255,5 +236,9 @@ if ($validator->fails()) {
           $result .= substr($generator, (rand()%(strlen($generator))), 1); 
       }  
       return $result; 
+  }
+  public function verifyOTP(){
+      
+
   } 
 }
