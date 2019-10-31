@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Aws\Sns\SnsClient;
-use Aws\Exception\AwsException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\RegisterResource as Reg;
@@ -18,33 +16,6 @@ class AuthController extends Controller
     public $successStatus = 200;
   
     public function register(Request $request) {  
-//       $snsKey  = env('AWS_ACCESS_KEY_ID');
-//       $snsSecret =env('AWS_SECRET_ACCESS_KEY');
-//       $snsRegion = env('AWS_DEFAULT_REGION');
-//       $snsVersion = env('AWS_VERSION');
-//       try{
-//          $sns = new SnsClient([
-//              'region' => $snsRegion, //Change according to you
-//              'version' => $snsVersion, //Change according to you
-//              'credentials' => [
-//                  'key'    => $snsKey,
-//                  'secret' => $snsSecret,
-//              ],
-//              'scheme' => 'https', //disables SSL certification, there was an error on enabling it        
-//          ]);
-//      }catch(AwsException $ex){
-//       //   return RestControllerHelper::responseHandler("sns", array("status"=>1500,"message"=>"SNS account connection failed"), 200);
-//       echo $ex;
-//      }
-//      try {
-//       $result = $sns->listTopics([
-//       ]);
-//       print_r($result);
-//   } catch (AwsException $e) {
-//       // output error message if fails
-//       error_log($e->getMessage());
-//   } 
-//   die("LIST OF TOPICS");
     $validator = Validator::make($request->all(), [ 
                  'login_id' => 'required|unique:users',
                  'device_id'=>'required',
@@ -209,6 +180,14 @@ if ($validator->fails()) {
          $code = array("code"=>200,'message'=>'password hogya change');
       return response()->json(['success' => $code]);
 
+   }
+
+   public function forgetPassword(){
+
+   }
+
+   public function sendOTP(){
+      
    }
 
 }

@@ -24,4 +24,6 @@ Route::post('reset-pass', 'AuthController@resetpassword');
 Route::get('subplan', 'LicenseController@getCurrentSubsPlan');
 Route::get('planlist','LicenseController@getplanlist');
 Route::post('upgradeplan','LicenseController@upgradeplan');
+Route::post('forget-pass', 'AuthController@forgetPassword');
+Route::post('send-otp', 'AuthController@sendOTP');
 });
