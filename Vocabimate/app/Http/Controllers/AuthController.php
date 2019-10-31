@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Aws\Sns\SnsClient;
+use Aws\Exception\AwsException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\RegisterResource as Reg;
@@ -183,11 +185,75 @@ if ($validator->fails()) {
    }
 
    public function forgetPassword(){
+      die("asfaca");
+            $snsKey = env('AWS_ACCESS_KEY_ID');
+            $snsSecret =env('AWS_SECRET_ACCESS_KEY');
+            $snsRegion = env('AWS_DEFAULT_REGION');
+            $snsVersion = env('AWS_VERSION');
+            try{
+            $sns = new SnsClient([
+            'region' => $snsRegion, //Change according to you
+            'version' => $snsVersion, //Change according to you
+            'credentials' => [
+            'key' => $snsKey,
+            'secret' => $snsSecret,
+            ],
+            'scheme' => 'https', //disables SSL certification, there was an error on enabling it 
+            ]);
+            }catch(AwsException $ex){
+            // return RestControllerHelper::responseHandler("sns", array("status"=>1500,"message"=>"SNS account connection failed"), 200);
+            echo $ex;
+            }
+            try {
+            $result = $sns->listTopics([
+            ]);
+            print_r($result);
+            } catch (AwsException $e) {
+            // output error message if fails
+            error_log($e->getMessage());
+            } 
+            die("LIST OF TOPICS");
 
    }
 
-   public function sendOTP(){
-      
+    public function sendOTP(){
+      $snsKey = env('AWS_ACCESS_KEY_ID');
+      $snsSecret =env('AWS_SECRET_ACCESS_KEY');
+      $snsRegion = env('AWS_DEFAULT_REGION');
+      $snsVersion = env('AWS_VERSION');
+      $len_of_otp = 6 ;
+      $otp = $this->generateOTP($len_of_otp);
+      $message = 'Your OTP for Verification is '.$otp;
+      $phone = $_POST['phone_num']; 
+      try{
+         $sns = new SnsClient([
+         'region' => $snsRegion, //Change according to you
+         'version' => $snsVersion, //Change according to you
+         'credentials' => [
+         'key' => $snsKey,
+         'secret' => $snsSecret,
+         ],
+         'scheme' => 'https', //disables SSL certification, there was an error on enabling it 
+         ]);
+         }catch(AwsException $ex){
+         echo $ex;
+         }
+      //    try {
+      //       $result = $sns->publish([
+      //           'Message' => $message,
+      //           'PhoneNumber' => $phone,
+      //       ]);
+      //   } catch (AwsException $e) {
+      //    echo $ex;
+      //   } 
+      print_r($message);die;
    }
-
+    public function generateOTP($len_of_otp){ 
+      $generator = "1357902468"; 
+      $result = ""; 
+      for ($i = 1; $i <= $len_of_otp; $i++) { 
+          $result .= substr($generator, (rand()%(strlen($generator))), 1); 
+      }  
+      return $result; 
+  } 
 }
