@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Input;
 class AuthController extends Controller
 {
     public $successStatus = 200;
+
+    //------Register User API---------
   
     public function register(Request $request) {  
     $validator = Validator::make($request->all(), [ 
@@ -76,6 +78,9 @@ class AuthController extends Controller
    $code = array("code"=>200,'message'=>'User Successfully Created, Please Login!');   
    return response()->json(['userMessage' => $code]);
    }
+
+
+   //------Login User API---------
      
       
    public function login(){ 
@@ -106,6 +111,8 @@ class AuthController extends Controller
       return response()->json(['error'=>$codee], 401); 
       } 
    }
+
+   //------Save User Details API---------
      
    public function savedetails(Request $request) {
     $user = Auth::user();
@@ -155,7 +162,9 @@ if ($validator->fails()) {
 }
    
    
-   
+ //------Logout User API---------
+ 
+ 
    public function logout(){ 
       $user=Auth::user();
       $a=$user->token();
@@ -164,7 +173,7 @@ if ($validator->fails()) {
       return response()->json(['success' => $code]);
      }
      
-   
+   //------Change Password API---------
 
    public function resetpassword(Request $request){
       $user=Auth::user();
@@ -179,7 +188,7 @@ if ($validator->fails()) {
          $x['password'] = bcrypt($input['new_password']);
          DB::table('users')->update($x);
 
-         $code = array("code"=>200,'message'=>'password hogya change');
+         $code = array("code"=>200,'message'=>'Password Changed Successfully');
       return response()->json(['success' => $code]);
 
    }
@@ -187,12 +196,56 @@ if ($validator->fails()) {
    //------Forget Password API--------- 
 
    public function forgetPassword(){
-           //TODO
-           // On CALLING THIS API USER ASKED TO ENTER HIS MOBILE NUMBER
-           // 1. FIRST CHECK HIS PHONE NUMBER IN DB 
-           // (IF) FOUND THEN CALL SEND OTP FUNCTION
-           // ELSE
-           // NOT FOUND 
+      // $validator = Validator::make($request->all(), [ 
+      //    'phone_num' => 'required|max:10|min:10',
+      // ]);
+      // if ($validator->fails()) {          
+      //    return response()->json(['error'=>$validator->errors()], 401);                        }    
+      //    $input = $request->all(); 
+        // $number['phone_num']=$input['phone_num'];
+         $user_phone = "select * from user_details where phone='".$_POST['phone_num']."'";
+         $get_phone = DB::select($user_phone);
+         if($get_phone==null)
+         {
+            $code = array("code"=>200,'message'=>'Phone Number Not Found In Our System. Please Try Again.');
+            return response()->json(['success' => $code]);
+
+         }else{
+            $snsKey = env('AWS_ACCESS_KEY_ID');
+            $snsSecret =env('AWS_SECRET_ACCESS_KEY');
+            $snsRegion = env('AWS_DEFAULT_REGION');
+            $snsVersion = env('AWS_VERSION');
+            $len_of_otp = 6 ;
+            $otp = $this->generateOTP($len_of_otp);
+            DB::table('user_details')
+            ->where('phone','=',$_POST['phone_num'])
+            ->update(array('otp'=>$otp));
+            $message = 'Your OTP for Verification is '.$otp;
+            $phone = $_POST['phone_num']; 
+            try{
+               $sns = new SnsClient([
+               'region' => $snsRegion, //Change according to you
+               'version' => $snsVersion, //Change according to you
+               'credentials' => [
+               'key' => $snsKey,
+               'secret' => $snsSecret,
+               ],
+               'scheme' => 'https', //disables SSL certification, there was an error on enabling it 
+               ]);
+               }catch(AwsException $ex){
+               echo $ex;
+               }
+               //THIS TRY-CATCH  FUNCTION WILL SEND SMS TO PHONE NUMBER
+            //    try {
+            //       $result = $sns->publish([
+            //           'Message' => $message,
+            //           'PhoneNumber' => $phone,
+            //       ]);
+            //   } catch (AwsException $e) {
+            //    echo $ex;
+            //   } 
+            return response()->json(["code"=>200, "otp"=>$otp]);
+         }
 
    }
    //---------Send OTP API--------
@@ -238,6 +291,19 @@ if ($validator->fails()) {
       return $result; 
   }
   public function verifyOTP(){
+   $user_otp = "select otp from user_details where phone='".$_POST['phone_num']."'";
+   $get_user_otp = DB::select($user_otp);
+   $final_otp = $get_user_otp[0];
+   if($final_otp->otp==$_POST['otp'])
+   {
+      $code = array("code"=>200,'message'=>'Verified Successfully!!');
+      return response()->json(['success' => $code]);
+
+   }else{
+      $code = array("code"=>200,'message'=>'Please Enter Valid OTP!!');
+      return response()->json(['success' => $code]);
+
+   }
       
 
   } 

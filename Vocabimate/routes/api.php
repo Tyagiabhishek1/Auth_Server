@@ -17,6 +17,7 @@ Route::post('login', 'AuthController@login');
 Route::post('upload', 'UploadController@upload');
 Route::post('register', 'AuthController@register');
 Route::post('forget-pass', 'AuthController@forgetPassword');
+Route::post('verify-otp', 'AuthController@verifyOTP');
 Route::post('send-otp', 'AuthController@sendOTP');
 Route::group(['middleware' => 'auth:api'], function(){
 Route::get('getUser', 'AuthController@getUser');
