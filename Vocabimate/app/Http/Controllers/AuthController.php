@@ -32,51 +32,53 @@ class AuthController extends Controller
     }  
      
     $input = $request->all(); 
-    $x['login_id']=$input['login_id'];
-    $x['email']=$input['email'];
-    $a['device_id']=$input['device_id'];
-    $x['password'] = bcrypt($input['password']);   
-    $user = User::create($x);
-    $a['user_id']=$user['user_id'];
+    $user_input['login_id']=$input['login_id'];
+    $user_input['email']=$input['email'];
+    $user_input_mob['device_id']=$input['device_id'];
+    $user_input['password'] = bcrypt($input['password']);   
+    $user = User::create($user_input);
+    $user_input_mob['user_id']=$user['user_id'];
     $success['token'] =  $user->createToken('AppName')->accessToken;
-    $a['access_token']=$success['token'];
-    $mob=$a;
+    $user_input_mob['access_token']=$success['token'];
+    $mob=$user_input_mob;
     DB::table('mob_auth')->insert($mob);
     $plan=array();
-    $p['user_id']=$user['user_id'];
+    $user_id['user_id']=$user['user_id'];
     $sql = "select plan_id,plan_name,plan_description,time_period_months,actual_price,discount_price,is_hd_available,is_uhd_available,can_download,number_of_device from plan where plan_id=1";
-    $comments = DB::select($sql);
-    foreach ($comments as $comments) {
+    $plan = DB::select($sql);
+    foreach ($plan as $plan) {
                 
-      $plan_id= $comments->plan_id;
-      $actual_price= $comments->actual_price;
-      $discount_price= $comments->discount_price;
+      $plan_id= $plan->plan_id;
+      $actual_price= $plan->actual_price;
+      $discount_price= $plan->discount_price;
    }
-   $usd=DB::table('users')
+   $user_data=DB::table('users')
    ->select('users.user_id','users.login_id','users.email','users.delete_ind','users.update_user_id','users.enabled_ind','users.account_not_expired','users.account_not_locked','users.credentials_not_expired','users.user_details_ind','mob_auth.access_token','mob_auth.login_ind')
    ->join('mob_auth','mob_auth.user_id','=','users.user_id')
-   ->where("users.user_id", "=",$p)
+   ->where("users.user_id", "=",$user_id)
    ->get(); 
    
-   foreach ($usd as $usd) {
+   foreach ($user_data as $user_data) {
                 
-      $user_id= $usd->user_id;
-      $login_id= $usd->login_id;
+      $user_id= $user_data->user_id;
+      $login_id= $user_data->login_id;
    }    
     DB::table('subscription')->insert(array('user_id'=>$user_id,'plan_id'=>$plan_id,'actual_price'=>$actual_price,'discount_price'=>$discount_price));
-    $usd=DB::table('users')
+    $user_data=DB::table('users')
    ->select('users.user_id','users.login_id','users.email','users.delete_ind','users.update_user_id','users.enabled_ind','users.account_not_expired','users.account_not_locked','users.credentials_not_expired','users.user_details_ind','mob_auth.access_token','mob_auth.login_ind')
    ->join('mob_auth','mob_auth.user_id','=','users.user_id')
-   ->where("users.user_id", "=",$p)
+   ->where("users.user_id", "=",$user_id)
    ->get();    
 
    $subs=DB::table('subscription')
    ->select('subscription.sub_start_date','subscription.sub_end_date','subscription.subs_status','subscription.actual_price','subscription.discount_price','subscription.paid_price','subscription.user_id')
-   ->where("subscription.user_id", "=",$p)
+   ->where("subscription.user_id", "=",$user_id)
    ->get();
-   DB::table('user_details')->insert($p);
-   $code = array("code"=>200,'message'=>'User Successfully Created, Please Login!');   
-   return response()->json(['userMessage' => $code]);
+   // DB::table('user_details')->insert($user_id);
+   DB::table('user_details')
+    ->insert(array('user_id'=>$user_id));
+   $response = array("code"=>200,'message'=>'User Successfully Created, Please Login!');   
+   return response()->json(['userMessage' => $response]);
    }
 
 
@@ -90,25 +92,25 @@ class AuthController extends Controller
       $dt =now();
       $success['access_token'] =  $user->createToken('AppName')-> accessToken; 
       DB::table('mob_auth')->update($success);
-      $code = array("code"=>200,'message'=>'logged in successfully');
-      $cc = array("servertime"=>$dt);  
-      $subs=DB::table('subscription')
+      $response = array("code"=>200,'message'=>'logged in successfully');
+      $current_time = array("servertime"=>$dt);  
+      $user_subscription_details=DB::table('subscription')
       ->select('subscription.sub_id','subscription.sub_start_date','subscription.sub_end_date','subscription.subs_status','subscription.actual_price','subscription.discount_price','subscription.paid_price')
       ->where("subscription.user_id", "=",$id)
       ->get(); 
       $sql = "select plan_id,plan_name,plan_description,time_period_months,actual_price,discount_price,is_hd_available,is_uhd_available,can_download,number_of_device from plan where plan_id=1";
-      $comments = DB::select($sql);
-      $usd=DB::table('users')
+      $user_plan_details = DB::select($sql);
+      $user_data=DB::table('users')
       ->select('users.user_id','users.login_id','users.email','users.delete_ind','users.update_user_id','users.enabled_ind','users.account_not_expired','users.account_not_locked','users.credentials_not_expired','users.user_details_ind','mob_auth.access_token','mob_auth.login_ind')
       ->join('mob_auth','mob_auth.user_id','=','users.user_id')
       ->where("users.user_id", "=",$id)
       ->get();
    
 
-       return response()->json(['userMessage' => $code,'subscription'=>$subs,'plan'=>$comments,'user'=>$usd,'token'=>$success]); 
+       return response()->json(['userMessage' => $response,'subscription'=>$user_subscription_details,'plan'=>$user_plan_details,'user'=>$user_data,'token'=>$success]); 
      } else{ 
-      $codee = array("code"=>3004,'message'=>'Invalid LoginId or Password');
-      return response()->json(['error'=>$codee], 401); 
+      $invalid_response = array("code"=>3004,'message'=>'Invalid LoginId or Password');
+      return response()->json(['error'=>$invalid_response], 401); 
       } 
    }
 
@@ -137,28 +139,28 @@ if ($validator->fails()) {
       return response()->json(['error'=>$validator->errors()], 401);                        }    
       $input = $request->all(); 
       $id=$user->user_id;
-      $d['first_name']=$input['first_name'];
-      $d['middle_name']=$input['middle_name'];
-      $d['last_name']=$input['last_name'];
-      $d['prefix']=$input['prefix'];
-      $d['gender']=$input['gender'];
-      $d['dob']=$input['dob'];
-      $d['user_id']=$user['user_id'];
-      $d['phone_extension']=$input['phone_extension'];
-      $d['phone']=$input['phone'];
-      $d['address_line1']=$input['address_line1'];
-      $d['address_line2']=$input['address_line2'];
-      $d['city']=$input['city'];
-      $d['state']=$input['state'];
-      $d['zipcode']=$input['zipcode'];
-      $d['country']=$input['country'];
+      $user_details['first_name']=$input['first_name'];
+      $user_details['middle_name']=$input['middle_name'];
+      $user_details['last_name']=$input['last_name'];
+      $user_details['prefix']=$input['prefix'];
+      $user_details['gender']=$input['gender'];
+      $user_details['dob']=$input['dob'];
+      $user_details['user_id']=$user['user_id'];
+      $user_details['phone_extension']=$input['phone_extension'];
+      $user_details['phone']=$input['phone'];
+      $user_details['address_line1']=$input['address_line1'];
+      $user_details['address_line2']=$input['address_line2'];
+      $user_details['city']=$input['city'];
+      $user_details['state']=$input['state'];
+      $user_details['zipcode']=$input['zipcode'];
+      $user_details['country']=$input['country'];
           
       DB::table('user_details')
       ->where('user_id',$id)
-      ->update($d);
-      $code = array("code"=>200,'message'=>'details saved successfully');
+      ->update($user_details);
+      $response = array("code"=>200,'message'=>'User Details Saved Successfully');
 
-      return response()->json(['success' =>$code], $this->successStatus); 
+      return response()->json(['success' =>$response], $this->successStatus); 
 }
    
    
@@ -167,17 +169,17 @@ if ($validator->fails()) {
  
    public function logout(){ 
       $user=Auth::user();
-      $a=$user->token();
-      $a->revoke();
-      $code = array("code"=>200,'message'=>'logged out successfully');
-      return response()->json(['success' => $code]);
+      $user_token=$user->token();
+      $user_token->revoke();
+      $response = array("code"=>200,'message'=>'logged out successfully');
+      return response()->json(['success' => $response]);
      }
      
    //------Change Password API---------
 
    public function resetpassword(Request $request){
       $user=Auth::user();
-      $a=$user->password;
+      $user_password=$user->password;
       $validator = Validator::make($request->all(), [ 
     'new_password' => 'max:8',
     'c_password' => 'required|same:new_password',
@@ -185,11 +187,11 @@ if ($validator->fails()) {
    if ($validator->fails()) {          
          return response()->json(['error'=>$validator->errors()], 401);                        }    
          $input = $request->all();
-         $x['password'] = bcrypt($input['new_password']);
-         DB::table('users')->update($x);
+         $password['password'] = bcrypt($input['new_password']);
+         DB::table('users')->update($password);
 
-         $code = array("code"=>200,'message'=>'Password Changed Successfully');
-      return response()->json(['success' => $code]);
+         $response = array("code"=>200,'message'=>'Password Changed Successfully');
+      return response()->json(['success' => $response]);
 
    }
 
