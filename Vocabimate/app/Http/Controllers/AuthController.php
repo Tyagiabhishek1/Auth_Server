@@ -78,7 +78,7 @@ class AuthController extends Controller
    DB::table('user_details')
     ->insert(array('user_id'=>$user_id));
    $response = array("code"=>200,'message'=>'User Successfully Created, Please Login!');   
-   return response()->json(['userMessage' => $response]);
+   return response()->json(['userMessages' => array($response)]);
    }
 
 
@@ -90,6 +90,7 @@ class AuthController extends Controller
       $user = Auth::user();
       $id=$user->user_id;
       $dt =now();
+      $servertime=strtotime($dt);
       $success['access_token'] =  $user->createToken('AppName')-> accessToken; 
       DB::table('mob_auth')->update($success);
       $response = array("code"=>200,'message'=>'logged in successfully');
@@ -105,9 +106,24 @@ class AuthController extends Controller
       ->join('mob_auth','mob_auth.user_id','=','users.user_id')
       ->where("users.user_id", "=",$id)
       ->get();
+      foreach ($user_data as $user_data) {
+                
+         $user_return_array['user_id']= $user_data->user_id;
+         $user_return_array['login_id']= $user_data->login_id;
+         $user_return_array['email']= $user_data->email;
+         $user_return_array['delete_ind']= $user_data->delete_ind;
+         $user_return_array['update_user_id']= $user_data->update_user_id;
+         $user_return_array['enabled_ind']= $user_data->enabled_ind;
+         $user_return_array['account_not_expired']= $user_data->account_not_expired;
+         $user_return_array['account_not_locked']= $user_data->account_not_locked;
+         $user_return_array['credentials_not_expired']= $user_data->credentials_not_expired;
+         $user_return_array['user_details_ind']= $user_data->user_details_ind;
+         $user_return_array['access_token']= $user_data->access_token;
+         $user_return_array['login_ind']= $user_data->login_ind;
+      }  
    
 
-       return response()->json(['userMessage' => $response,'subscription'=>$user_subscription_details,'plan'=>$user_plan_details,'user'=>$user_data,'token'=>$success]); 
+       return response()->json(['userMessage' => array($response),'servertime'=>$servertime,'user'=>$user_return_array,'subscription'=>$user_subscription_details,'plan'=>$user_plan_details,'token'=>$success]); 
      } else{ 
       $invalid_response = array("code"=>3004,'message'=>'Invalid LoginId or Password');
       return response()->json(['error'=>$invalid_response], 401); 
