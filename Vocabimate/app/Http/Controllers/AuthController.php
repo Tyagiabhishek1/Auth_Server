@@ -188,7 +188,7 @@ if ($validator->fails()) {
       $user_token=$user->token();
       $user_token->revoke();
       $response = array("code"=>200,'message'=>'logged out successfully');
-      return response()->json(['success' => $response]);
+      return response()->json(['userMessages' => array($response)]);
      }
      
    //------Change Password API---------
@@ -207,7 +207,7 @@ if ($validator->fails()) {
          DB::table('users')->update($password);
 
          $response = array("code"=>200,'message'=>'Password Changed Successfully');
-      return response()->json(['success' => $response]);
+      return response()->json(['success' => array($response)]);
 
    }
 
@@ -225,8 +225,8 @@ if ($validator->fails()) {
          $get_phone = DB::select($user_phone);
          if($get_phone==null)
          {
-            $code = array("code"=>200,'message'=>'Phone Number Not Found In Our System. Please Try Again.');
-            return response()->json(['success' => $code]);
+            $response = array("code"=>200,'message'=>'Phone Number Not Found In Our System. Please Try Again.');
+            return response()->json(['success' => array($response)]);
 
          }else{
             $snsKey = env('AWS_ACCESS_KEY_ID');
@@ -262,7 +262,8 @@ if ($validator->fails()) {
             //   } catch (AwsException $e) {
             //    echo $ex;
             //   } 
-            return response()->json(["code"=>200, "otp"=>$otp]);
+            $response = array("code"=>200,'otp'=>$otp);
+            return response()->json(['userMessages'=>array($response)]);
          }
 
    }
@@ -314,12 +315,12 @@ if ($validator->fails()) {
    $final_otp = $get_user_otp[0];
    if($final_otp->otp==$_POST['otp'])
    {
-      $code = array("code"=>200,'message'=>'Verified Successfully!!');
-      return response()->json(['success' => $code]);
+      $response = array("code"=>200,'message'=>'Verified Successfully!!');
+      return response()->json(['success' => array($response)]);
 
    }else{
-      $code = array("code"=>200,'message'=>'Please Enter Valid OTP!!');
-      return response()->json(['success' => $code]);
+      $response = array("code"=>200,'message'=>'Please Enter Valid OTP!!');
+      return response()->json(['success' => array($response)]);
 
    }
       
