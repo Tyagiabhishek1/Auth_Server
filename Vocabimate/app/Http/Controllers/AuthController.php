@@ -15,27 +15,36 @@ use Illuminate\Support\Facades\Input;
 
 class AuthController extends Controller
 {
-    public $successStatus = 200;
+    public $successStatus = "200";
 
     //------Register User API---------
   
     public function register(Request $request) {  
-    $validator = Validator::make($request->all(), [ 
-                 'login_id' => 'required|unique:users',
-                 'device_id'=>'required',
-                 'email' => 'required|email|unique:users',
-                 'password' => 'required',  
-                 'c_password' => 'required|same:password', 
-       ]);   
-    if ($validator->fails()) {          
-          return response()->json(['error'=>$validator->errors()], 401);  
-    }  
+
+   //  $validator = Validator::make($request->all(),[
+   //                   'login_id' => 'required|unique:users',
+   //                   'device_id'=>'required',
+   //                   'email' => 'required|email|unique:users',
+   //                   'password' => 'required',  
+   //                   'c_password' => 'required|same:password',
+                     
+   //     ]);  
+   //     $content = $request->getContent(); 
+   //     $post_json = json_decode($content,true);
+   //     $arra = $post_json['user'];
+   //  if ($validator->fails()) {          
+   //        return response()->json(['error'=>$validator->errors()], 401);  
+   //  }    print_r($arra);
+   //  die("G");
      
-    $input = $request->all(); 
-    $user_input['login_id']=$input['login_id'];
-    $user_input['email']=$input['email'];
-    $user_input_mob['device_id']=$input['device_id'];
-    $user_input['password'] = bcrypt($input['password']);   
+   //  $input = $request->all(); 
+    $content = $request->getContent(); 
+    $post_json = json_decode($content,true);
+    $arra = $post_json['user'];
+    $user_input['login_id']=$arra['login_id'];
+    $user_input['email']=$arra['email'];
+    $user_input_mob['device_id']=$arra['device_id'];
+    $user_input['password'] = bcrypt($arra['password']);  
     $user = User::create($user_input);
     $user_input_mob['user_id']=$user['user_id'];
     $success['token'] =  $user->createToken('AppName')->accessToken;
@@ -77,7 +86,7 @@ class AuthController extends Controller
    // DB::table('user_details')->insert($user_id);
    DB::table('user_details')
     ->insert(array('user_id'=>$user_id));
-   $response = array("code"=>200,'message'=>'User Successfully Created, Please Login!');   
+   $response = array("code"=>"200",'message'=>'User Successfully Created, Please Login!');   
    return response()->json(['userMessages' => array($response)]);
    }
 
@@ -151,7 +160,7 @@ class AuthController extends Controller
          $user_return_array['access_token']= $user_data->access_token;
          $user_return_array['login_ind']= $user_data->login_ind;
       }  
-       return response()->json(['userMessages' => array($response),'servertime'=>$servertime,'user'=>$user_return_array,'subscription'=>$user_sub_array,'plan'=>$user_plan_array,'token'=>$success]); 
+       return response()->json(['userMessages' => array($response),'servertime'=>$servertime,'user'=>$user_return_array,'subscription'=>$user_sub_array,'plan'=>$user_plan_array]); 
      } else{ 
       $invalid_response = array("code"=>3004,'message'=>'Invalid LoginId or Password');
       return response()->json(['error'=>$invalid_response], 401); 
