@@ -99,15 +99,45 @@ class AuthController extends Controller
       ->select('subscription.sub_id','subscription.sub_start_date','subscription.sub_end_date','subscription.subs_status','subscription.actual_price','subscription.discount_price','subscription.paid_price')
       ->where("subscription.user_id", "=",$id)
       ->get(); 
+
+      //user subscription details fetching into array
+      foreach ($user_subscription_details as $user_subscription_details) {   
+         $user_sub_array['sub_id']= $user_subscription_details->sub_id;
+         $user_sub_array['sub_start_date']= $user_subscription_details->sub_start_date;
+         $user_sub_array['sub_end_date']= $user_subscription_details->sub_end_date;
+         $user_sub_array['subs_status']= $user_subscription_details->subs_status;
+         $user_sub_array['actual_price']= $user_subscription_details->actual_price;
+         $user_sub_array['discount_price']= $user_subscription_details->discount_price;
+         $user_sub_array['paid_price']= $user_subscription_details->paid_price;
+      }  
+
+
       $sql = "select plan_id,plan_name,plan_description,time_period_months,actual_price,discount_price,is_hd_available,is_uhd_available,can_download,number_of_device from plan where plan_id=1";
       $user_plan_details = DB::select($sql);
+
+      //user plan details fetching into array
+      foreach ($user_plan_details as $user_plan_details) {   
+         $user_plan_array['plan_id']= $user_plan_details->plan_id;
+         $user_plan_array['plan_name']= $user_plan_details->plan_name;
+         $user_plan_array['plan_description']= $user_plan_details->plan_description;
+         $user_plan_array['time_period_months']= $user_plan_details->time_period_months;
+         $user_plan_array['actual_price']= $user_plan_details->actual_price;
+         $user_plan_array['discount_price']= $user_plan_details->discount_price;
+         $user_plan_array['is_hd_available']= $user_plan_details->is_hd_available;
+         $user_plan_array['is_uhd_available']= $user_plan_details->is_uhd_available;
+         $user_plan_array['can_download']= $user_plan_details->can_download;
+         $user_plan_array['number_of_device']= $user_plan_details->number_of_device;
+      }  
+
+
       $user_data=DB::table('users')
       ->select('users.user_id','users.login_id','users.email','users.delete_ind','users.update_user_id','users.enabled_ind','users.account_not_expired','users.account_not_locked','users.credentials_not_expired','users.user_details_ind','mob_auth.access_token','mob_auth.login_ind')
       ->join('mob_auth','mob_auth.user_id','=','users.user_id')
       ->where("users.user_id", "=",$id)
       ->get();
-      foreach ($user_data as $user_data) {
-                
+
+      //user details fetching into array
+      foreach ($user_data as $user_data) {   
          $user_return_array['user_id']= $user_data->user_id;
          $user_return_array['login_id']= $user_data->login_id;
          $user_return_array['email']= $user_data->email;
@@ -121,9 +151,7 @@ class AuthController extends Controller
          $user_return_array['access_token']= $user_data->access_token;
          $user_return_array['login_ind']= $user_data->login_ind;
       }  
-   
-
-       return response()->json(['userMessage' => array($response),'servertime'=>$servertime,'user'=>$user_return_array,'subscription'=>$user_subscription_details,'plan'=>$user_plan_details,'token'=>$success]); 
+       return response()->json(['userMessages' => array($response),'servertime'=>$servertime,'user'=>$user_return_array,'subscription'=>$user_sub_array,'plan'=>$user_plan_array,'token'=>$success]); 
      } else{ 
       $invalid_response = array("code"=>3004,'message'=>'Invalid LoginId or Password');
       return response()->json(['error'=>$invalid_response], 401); 
