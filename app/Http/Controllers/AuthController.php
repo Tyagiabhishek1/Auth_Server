@@ -21,26 +21,27 @@ class AuthController extends Controller
   
     public function register(Request $request) {  
 
-   //  $validator = Validator::make($request->all(),[
-   //                   'login_id' => 'required|unique:users',
-   //                   'device_id'=>'required',
-   //                   'email' => 'required|email|unique:users',
-   //                   'password' => 'required',  
-   //                   'c_password' => 'required|same:password',
-                     
-   //     ]);  
+    $validator = Validator::make($request->all(),[
+       [
+        'user'=>[
+                   'login_id' => 'required|unique:users',
+                     'device_id'=>'required',
+                     'email' => 'required|email|unique:users',
+                     'password' => 'required',  
+                     'c_password' => 'required|same:password',
+        ]     
+    ]]);  
    //     $content = $request->getContent(); 
    //     $post_json = json_decode($content,true);
    //     $arra = $post_json['user'];
-   //  if ($validator->fails()) {          
-   //        return response()->json(['error'=>$validator->errors()], 401);  
-   //  }    print_r($arra);
-   //  die("G");
+    if ($validator->fails()) {          
+          return response()->json(['error'=>$validator->errors()], 401);  
+    }  
      
-   //  $input = $request->all(); 
-    $content = $request->getContent(); 
-    $post_json = json_decode($content,true);
-    $arra = $post_json['user'];
+    $input = $request->all(); 
+   //  $content = $request->getContent(); 
+   //  $post_json = json_decode($content,true);
+     $arra = $input['user'];
     $user_input['login_id']=$arra['login_id'];
     $user_input['email']=$arra['email'];
     $user_input_mob['device_id']=$arra['device_id'];

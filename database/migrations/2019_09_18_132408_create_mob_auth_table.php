@@ -17,9 +17,9 @@ class CreateMobAuthTable extends Migration
             $table->bigIncrements('mob_auth_id');
             $table->integer('user_id')->references('user_id')->on('users');
             $table->string('device_id');
-            $table->string('access_token');
+            $table->text('access_token');
             $table->string('update_user_id')->nullable();
-            $table->string('create_user_id');
+            $table->string('create_user_id')->nullable();;
             $table->timestamp('update_dt')->nullable();
             $table->timestamp('create_dt')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->string('login_ind')->nullable()->default('N');
