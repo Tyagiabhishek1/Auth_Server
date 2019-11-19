@@ -81,7 +81,7 @@
 
             <div class="content">
                 <div class="title m-b-md">
-                    Laravel
+                    Vocabimate Auth Server
                 </div>
 
                 <div class="links">
